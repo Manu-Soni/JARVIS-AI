@@ -1,11 +1,13 @@
 
 # ==========================================
 # PROJECT: J.A.R.V.I.S.
-# DAY 3: Voice Enabled Assistant
+# DAY 4: Voice Recognition Enabled Assistant
 # ==========================================
 
 from datetime import datetime
 import subprocess
+import speech_recognition as sr
+
 
 # JARVIS SPEAKING FUNCTION
 def speak(text):
@@ -40,6 +42,8 @@ def introduce_jarvis():
 
 # COMMAND PROCESSOR
 def process_command(command):
+
+    command = command.lower().strip()
 
     if command == "hello":
         speak("Hello! Nice to see you.")
@@ -82,16 +86,90 @@ def process_command(command):
     return True
 
 
+# VOICE RECOGNITION
+def listen():
+    recognizer = sr.Recognizer()
+
+    with sr.Microphone() as source:
+        print("\nJARVIS: Listening...")
+
+        audio = recognizer.listen(
+            source,
+            timeout=5,
+            phrase_time_limit=7
+        )
+
+    try:
+        command = recognizer.recognize_google(
+            audio,
+            language="en-IN"
+        )
+
+        print("YOU:", command)
+        return command.lower().strip()
+
+    except sr.UnknownValueError:
+        speak("Sorry, I couldn't understand. Please repeat.")
+        return ""
+
+    except sr.RequestError:
+        speak("Speech service unavailable. Please check your internet.")
+        return ""
+
+
 # MAIN PROGRAM
 def main():
 
     introduce_jarvis()
 
-    running = True
+    recognizer = sr.Recognizer()
 
-    while running:
-        command = input("You: ").lower().strip()
-        running = process_command(command)
+    try:
+        with sr.Microphone() as source:
+
+            speak("Please wait. Calibrating microphone.")
+
+            recognizer.adjust_for_ambient_noise(
+                source,
+                duration=1
+            )
+
+            speak("Microphone ready. You can speak now.")
+
+            running = True
+
+            while running:
+
+                print("\nJARVIS: Say a command...")
+
+                try:
+                    audio = recognizer.listen(
+                        source,
+                        timeout=5,
+                        phrase_time_limit=7
+                    )
+
+                    command = recognizer.recognize_google(
+                        audio,
+                        language="en-IN"
+                    )
+
+                    print("YOU:", command)
+
+                    running = process_command(command)
+
+                except sr.WaitTimeoutError:
+                    print("JARVIS: No speech detected. Listening again...")
+
+                except sr.UnknownValueError:
+                    speak("Sorry, I couldn't understand. Please repeat.")
+
+                except sr.RequestError:
+                    speak("Speech service unavailable. Check your internet.")
+
+    except OSError as error:
+        print("JARVIS: Microphone problem:", error)
+        speak("I cannot access the microphone.")
 
 
 if __name__ == "__main__":
