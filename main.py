@@ -7,6 +7,8 @@
 from datetime import datetime
 import subprocess
 import speech_recognition as sr
+import webbrowser
+from urllib.parse import quote_plus
 
 
 # JARVIS SPEAKING FUNCTION
@@ -30,6 +32,10 @@ def speak(text):
         creationflags=subprocess.CREATE_NO_WINDOW
     )
 
+
+# BROWSER CONTROL
+def open_website(website):
+    webbrowser.open(website)
 
 # INTRODUCTION
 def introduce_jarvis():
@@ -80,6 +86,27 @@ def process_command(command):
         speak("Shutting down. Goodbye!")
         return False
 
+    elif command == "open google":
+        speak("Opening Google.")
+        open_website("https://www.google.com")
+
+    elif command == "open youtube":
+        speak("Opening YouTube.")
+        open_website("https://www.youtube.com")
+
+    elif command == "open chatgpt":
+        speak("Opening ChatGPT.")
+        open_website("https://chatgpt.com")
+
+    elif command.startswith("search for "):
+        query = command.replace("search for ", "", 1)
+
+        speak(f"Searching Google for {query}")
+
+        search_url = "https://www.google.com/search?q=" + quote_plus(query)
+
+        open_website(search_url)
+        
     else:
         speak("Sorry, I don't understand that command yet.")
 
