@@ -9,6 +9,7 @@ import subprocess
 import speech_recognition as sr
 import webbrowser
 from urllib.parse import quote_plus
+import psutil
 
 
 # JARVIS SPEAKING FUNCTION
@@ -36,6 +37,41 @@ def speak(text):
 # BROWSER CONTROL
 def open_website(website):
     webbrowser.open(website)
+
+
+# APPLICATION CONTROL
+
+# APPLICATION CONTROL
+def open_application(app_name):
+
+    if app_name == "notepad":
+        subprocess.Popen(["notepad.exe"])
+
+    elif app_name == "calculator":
+        subprocess.Popen(["calc.exe"])
+
+    elif app_name == "vscode":
+        vscode_path = r"C:\Users\Asus\AppData\Local\Programs\Microsoft VS Code\Code.exe"
+
+        subprocess.Popen([vscode_path])
+
+
+# BATTERY STATUS
+def battery_status():
+
+    battery = psutil.sensors_battery()
+
+    if battery is None:
+        speak("Sorry, I cannot detect a battery.")
+        return
+
+    percentage = battery.percent
+
+    if battery.power_plugged:
+        speak(f"Your laptop is plugged in. Battery is at {percentage} percent.")
+    else:
+        speak(f"Your laptop battery is at {percentage} percent.")
+
 
 # INTRODUCTION
 def introduce_jarvis():
@@ -106,7 +142,25 @@ def process_command(command):
         search_url = "https://www.google.com/search?q=" + quote_plus(query)
 
         open_website(search_url)
-        
+
+    elif command == "open notepad":
+        speak("Opening Notepad.")
+        open_application("notepad")
+
+    elif command == "open calculator":
+        speak("Opening Calculator.")
+        open_application("calculator")
+
+    elif command in ["open vscode", "open vs code", "open visual studio code"]:
+        speak("Opening Visual Studio Code.")
+        open_application("vscode")
+
+    elif command == "battery":
+        battery_status()
+
+    elif command == "battery status":
+        battery_status()
+
     else:
         speak("Sorry, I don't understand that command yet.")
 
@@ -195,8 +249,8 @@ def main():
                     speak("Speech service unavailable. Check your internet.")
 
     except OSError as error:
-        print("JARVIS: Microphone problem:", error)
-        speak("I cannot access the microphone.")
+        print("JARVIS: Microphone or audio device problem:", error)
+        speak("There is a problem accessing the microphone.")
 
 
 if __name__ == "__main__":
