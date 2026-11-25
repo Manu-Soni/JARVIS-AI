@@ -89,12 +89,17 @@ def introduce_jarvis():
 # ==========================================
 
 
+
 def process_command(command):
 
     command = command.lower().strip()
 
     # Remove JARVIS wake word
     command = command.replace("jarvis", "", 1).strip(" ,.!?")
+
+    # Remove leftover "jar" from speech recognition
+    if command.endswith(" jar"):
+        command = command[:-4].strip()
 
     # Remove common polite phrases
     prefixes = [
@@ -122,10 +127,23 @@ def process_command(command):
 
     # GREETINGS
 
+
     if command in ["hello", "hi", "hey"]:
         speak("Hello! Nice to see you.")
 
-    elif command in ["how are you", "how are you doing"]:
+    # CONVERSATION
+    elif command in [
+        "how are you",
+        "how are you doing",
+        "hows everything going",
+        "how everything going",
+        "house everything going",
+        "are you doing okay",
+        "are you doing ok",
+        "are you okay",
+        "are you ok",
+        "how are things"
+    ]:
         speak("All systems are working perfectly!")
 
     elif command in ["who are you", "what are you"]:
