@@ -82,85 +82,143 @@ def introduce_jarvis():
     speak("Hello! I am online. How can I help you?")
 
 
-# COMMAND PROCESSOR
+
+# ==========================================
+# SMART COMMAND PROCESSOR
+# DAY 7
+# ==========================================
+
+
 def process_command(command):
 
     command = command.lower().strip()
 
-    if command == "hello":
+    # Remove JARVIS wake word
+    command = command.replace("jarvis", "", 1).strip(" ,.!?")
+
+    # Remove common polite phrases
+    prefixes = [
+        "hey can you ",
+        "can you ",
+        "could you ",
+        "would you ",
+        "please ",
+        "tell me ",
+        "hey "
+    ]
+
+    # Keep removing prefixes until none match
+    while True:
+        found = False
+
+        for prefix in prefixes:
+            if command.startswith(prefix):
+                command = command[len(prefix):].strip()
+                found = True
+                break
+
+        if not found:
+            break
+
+    # GREETINGS
+
+    if command in ["hello", "hi", "hey"]:
         speak("Hello! Nice to see you.")
 
-    elif command == "how are you":
+    elif command in ["how are you", "how are you doing"]:
         speak("All systems are working perfectly!")
 
-    elif command == "who are you":
+    elif command in ["who are you", "what are you"]:
         speak("I am JARVIS, your personal AI assistant.")
 
-    elif command == "what is your name":
+    elif command in ["what is your name", "your name"]:
         speak("My name is JARVIS!")
 
-    elif command == "time":
+    # TIME
+    elif command in ["time", "what time is it", "tell me the time"]:
         current_time = datetime.now().strftime("%I:%M %p")
         speak(f"The current time is {current_time}.")
 
-    elif command == "date":
+    # DATE
+    elif command in ["date", "what is the date", "tell me the date", "today's date"]:
         current_date = datetime.now().strftime("%d %B %Y")
         speak(f"Today's date is {current_date}.")
 
-    elif command == "help":
-        speak("Here are your available commands.")
-        print("hello")
-        print("how are you")
-        print("who are you")
-        print("what is your name")
-        print("time")
-        print("date")
-        print("help")
-        print("exit")
+    # HELP
+    elif command in ["help", "show commands", "what can you do"]:
+        speak("Here are some things I can do.")
 
-    elif command == "exit":
+        print("\nAVAILABLE COMMANDS")
+        print("------------------")
+        print("Hello")
+        print("How are you")
+        print("What time is it")
+        print("What is the date")
+        print("Open Google")
+        print("Open YouTube")
+        print("Open ChatGPT")
+        print("Search for something")
+        print("Open Notepad")
+        print("Open Calculator")
+        print("Open VS Code")
+        print("Battery status")
+        print("Exit")
+
+    # EXIT
+    elif command in ["exit", "quit", "shutdown jarvis", "stop"]:
         speak("Shutting down. Goodbye!")
         return False
 
-    elif command == "open google":
+    # WEBSITE CONTROL
+    elif command in ["open google", "google"]:
         speak("Opening Google.")
         open_website("https://www.google.com")
 
-    elif command == "open youtube":
+    elif command in ["open youtube", "youtube"]:
         speak("Opening YouTube.")
         open_website("https://www.youtube.com")
 
-    elif command == "open chatgpt":
+    elif command in ["open chatgpt", "chatgpt"]:
         speak("Opening ChatGPT.")
         open_website("https://chatgpt.com")
 
-    elif command.startswith("search for "):
+    # GOOGLE SEARCH
+    elif command.startswith("search for ") or command.startswith("search "):
         query = command.replace("search for ", "", 1)
+        if query == command:
+            query = command.replace("search ", "", 1)
 
-        speak(f"Searching Google for {query}")
+        if query.strip():
+            speak(f"Searching Google for {query}")
+            search_url = "https://www.google.com/search?q=" + quote_plus(query)
+            open_website(search_url)
+        else:
+            speak("What would you like me to search for?")
 
-        search_url = "https://www.google.com/search?q=" + quote_plus(query)
-
-        open_website(search_url)
-
-    elif command == "open notepad":
+    # APPLICATION CONTROL
+    elif command in ["open notepad", "start notepad", "launch notepad"]:
         speak("Opening Notepad.")
         open_application("notepad")
 
-    elif command == "open calculator":
+    elif command in ["open calculator", "start calculator", "launch calculator"]:
         speak("Opening Calculator.")
         open_application("calculator")
 
-    elif command in ["open vscode", "open vs code", "open visual studio code"]:
+    elif command in [
+        "open vscode",
+        "open vs code",
+        "open visual studio code",
+        "start vscode",
+        "launch vscode"
+    ]:
         speak("Opening Visual Studio Code.")
         open_application("vscode")
 
-    elif command == "battery":
+    # BATTERY STATUS
+    elif command in ["battery", "battery status", "check battery", "how much battery is left"]:
         battery_status()
 
-    elif command == "battery status":
-        battery_status()
-
+    # UNKNOWN COMMAND
     else:
         speak("Sorry, I don't understand that command yet.")
 
