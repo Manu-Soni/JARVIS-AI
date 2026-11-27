@@ -10,6 +10,8 @@ import speech_recognition as sr
 import webbrowser
 from urllib.parse import quote_plus
 import psutil
+from ctypes import cast, POINTER
+from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
 
 # JARVIS SPEAKING FUNCTION
@@ -39,7 +41,6 @@ def open_website(website):
     webbrowser.open(website)
 
 
-# APPLICATION CONTROL
 
 # APPLICATION CONTROL
 def open_application(app_name):
@@ -54,6 +55,42 @@ def open_application(app_name):
         vscode_path = r"C:\Users\Asus\AppData\Local\Programs\Microsoft VS Code\Code.exe"
 
         subprocess.Popen([vscode_path])
+
+# SYSTEM VOLUME CONTROL
+
+def increase_volume():
+    devices = AudioUtilities.GetSpeakers()
+    volume = devices.EndpointVolume
+
+    current_volume = volume.GetMasterVolumeLevelScalar()
+    new_volume = min(current_volume + 0.10, 1.0)
+
+    volume.SetMasterVolumeLevelScalar(new_volume, None)
+    speak("Volume increased.")
+
+def decrease_volume():
+    devices = AudioUtilities.GetSpeakers()
+    volume = devices.EndpointVolume
+
+    current_volume = volume.GetMasterVolumeLevelScalar()
+    new_volume = max(current_volume - 0.10, 0.0)
+
+    volume.SetMasterVolumeLevelScalar(new_volume, None)
+    speak("Volume decreased.")
+
+def mute_volume():
+    devices = AudioUtilities.GetSpeakers()
+    volume = devices.EndpointVolume
+
+    volume.SetMute(1, None)
+    speak("Volume muted.")
+
+def unmute_volume():
+    devices = AudioUtilities.GetSpeakers()
+    volume = devices.EndpointVolume
+
+    volume.SetMute(0, None)
+    speak("Volume unmuted.")
 
 
 # BATTERY STATUS
@@ -188,7 +225,7 @@ def process_command(command):
         return False
 
     # WEBSITE CONTROL
-    elif command in ["open google", "google"]:
+    elif "google" in command:
         speak("Opening Google.")
         open_website("https://www.google.com")
 
@@ -237,6 +274,36 @@ def process_command(command):
         battery_status()
 
     # UNKNOWN COMMAND
+    # SYSTEM VOLUME CONTROL
+    elif command in [
+    "increase volume",
+    "volume up",
+    "raise volume"
+]:
+         increase_volume()
+
+    elif command in [
+    "decrease volume",
+    "volume down",
+    "lower volume"
+]:
+      decrease_volume()
+
+    elif command in [
+    "mute",
+    "mute volume"
+]:
+     mute_volume()
+
+    elif command in [
+    "unmute",
+    "unmute volume"
+]:
+     unmute_volume()
+
+    
+
+# UNKNOWN COMMAND
     else:
         speak("Sorry, I don't understand that command yet.")
 
