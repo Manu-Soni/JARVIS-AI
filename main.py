@@ -125,6 +125,15 @@ def introduce_jarvis():
 # DAY 7
 # ==========================================
 
+def check_volume():
+    devices = AudioUtilities.GetSpeakers()
+    volume = devices.EndpointVolume
+
+    current_volume = volume.GetMasterVolumeLevelScalar()
+    volume_percent = round(current_volume * 100)
+
+    speak(f"The current volume is {volume_percent} percent.")
+    
 
 
 def process_command(command):
@@ -301,11 +310,16 @@ def process_command(command):
 ]:
      unmute_volume()
 
-    
-
+    elif command in [
+        "check volume",
+        "volume status",
+        "what is the volume"
+    ]:
+        check_volume()
+        
 # UNKNOWN COMMAND
     else:
-        speak("Sorry, I don't understand that command yet.")
+     speak("Sorry, I don't understand that command yet.")
 
     return True
 
