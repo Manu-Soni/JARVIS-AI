@@ -243,6 +243,27 @@ def open_folder(folder_name):
     else:
         speak(f"I couldn't find the {folder_name} folder.")
 
+def take_screenshot():
+    try:
+        from PIL import ImageGrab
+
+        pictures_folder = os.path.join(
+        os.path.expanduser("~"), "OneDrive", "Pictures")  
+        os.makedirs(pictures_folder, exist_ok=True)
+
+        filename = datetime.now().strftime("JARVIS_Screenshot_%Y-%m-%d_%H-%M-%S.png")
+        screenshot_path = os.path.join(pictures_folder, filename)
+
+        screenshot = ImageGrab.grab()
+        screenshot.save(screenshot_path)
+
+        speak("Screenshot captured and saved in your Pictures folder.")
+        print(f"Screenshot saved to: {screenshot_path}")
+
+    except Exception as error:
+        print("Screenshot error:", error)
+        speak("Sorry, I couldn't take the screenshot.")
+
 def process_command(command):
 
     command = command.lower().strip()
@@ -495,6 +516,15 @@ def process_command(command):
 
     elif command in ["open desktop", "open my desktop"]:
         open_folder("Desktop")
+
+    elif command in [
+        "take screenshot",
+        "take a screenshot",
+        "capture screen",
+        "capture screenshot",
+        "screenshot"
+    ]:
+        take_screenshot()
 
 # UNKNOWN COMMAND
     else:
