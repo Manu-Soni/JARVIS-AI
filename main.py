@@ -92,6 +92,16 @@ def unmute_volume():
     volume.SetMute(0, None)
     speak("Volume unmuted.")
 
+def check_volume():
+    devices = AudioUtilities.GetSpeakers()
+    volume = devices.EndpointVolume
+
+    current_volume = volume.GetMasterVolumeLevelScalar()
+    volume_percent = round(current_volume * 100)
+
+    speak(f"The current volume is {volume_percent} percent.")
+    
+
 
 # BATTERY STATUS
 def battery_status():
@@ -125,16 +135,64 @@ def introduce_jarvis():
 # DAY 7
 # ==========================================
 
-def check_volume():
-    devices = AudioUtilities.GetSpeakers()
-    volume = devices.EndpointVolume
+def get_brightness():
+    command = (
+        "(Get-CimInstance -Namespace root/WMI "
+        "-ClassName WmiMonitorBrightness).CurrentBrightness"
+    )
 
-    current_volume = volume.GetMasterVolumeLevelScalar()
-    volume_percent = round(current_volume * 100)
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True
+    )
 
-    speak(f"The current volume is {volume_percent} percent.")
-    
+    if result.returncode != 0 or not result.stdout.strip():
+        speak("Sorry, I couldn't read the brightness.")
+        return None
 
+    return int(result.stdout.strip())
+
+
+def set_brightness(level):
+    level = max(0, min(100, level))
+
+    command = (
+        "$monitor = Get-CimInstance -Namespace root/WMI "
+        "-ClassName WmiMonitorBrightnessMethods; "
+        f"Invoke-CimMethod -InputObject $monitor "
+        f"-MethodName WmiSetBrightness "
+        f"-Arguments @{{ Timeout = 1; Brightness = {level} }}"
+    )
+
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode == 0:
+        speak(f"Brightness set to {level} percent.")
+    else:
+        speak("Sorry, I couldn't change the brightness.")
+
+
+def increase_brightness():
+    current = get_brightness()
+    if current is not None:
+        set_brightness(min(100, current + 10))
+
+
+def decrease_brightness():
+    current = get_brightness()
+    if current is not None:
+        set_brightness(max(0, current - 10))
+
+
+def check_brightness():
+    current = get_brightness()
+    if current is not None:
+        speak(f"Brightness is at {current} percent.")
 
 def process_command(command):
 
@@ -227,6 +285,10 @@ def process_command(command):
         print("Open VS Code")
         print("Battery status")
         print("Exit")
+        print("Increase brightness")
+        print("Decrease brightness")
+        print("Check brightness")
+        print("Set brightness to 50 percent")
 
     # EXIT
     elif command in ["exit", "quit", "shutdown jarvis", "stop"]:
@@ -316,7 +378,26 @@ def process_command(command):
         "what is the volume"
     ]:
         check_volume()
-        
+
+        # SCREEN BRIGHTNESS CONTROL
+    elif command in ["increase brightness", "brightness up", "raise brightness"]:
+        increase_brightness()
+
+    elif command in ["decrease brightness", "brightness down", "lower brightness"]:
+        decrease_brightness()
+
+    elif command in ["check brightness", "brightness status", "what is the brightness"]:
+        check_brightness()
+
+    elif command.startswith("set brightness to "):
+        value = command.replace("set brightness to ", "", 1)
+        value = value.replace(" percent", "").strip()
+
+        if value.isdigit():
+            set_brightness(int(value))
+        else:
+            speak("Please tell me a brightness level from 0 to 100.")
+
 # UNKNOWN COMMAND
     else:
      speak("Sorry, I don't understand that command yet.")
