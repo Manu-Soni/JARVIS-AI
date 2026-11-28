@@ -8,10 +8,12 @@ from datetime import datetime
 import subprocess
 import speech_recognition as sr
 import webbrowser
+import os
 from urllib.parse import quote_plus
 import psutil
 from ctypes import cast, POINTER
 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+
 
 
 # JARVIS SPEAKING FUNCTION
@@ -194,9 +196,57 @@ def check_brightness():
     if current is not None:
         speak(f"Brightness is at {current} percent.")
 
+
+def check_wifi_status():
+    command = (
+        "Get-NetConnectionProfile | "
+        "Select-Object -First 1 -Property Name, IPv4Connectivity | "
+        "ForEach-Object { \"$($_.Name)|$($_.IPv4Connectivity)\" }"
+    )
+
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True
+    )
+
+    output = result.stdout.strip()
+
+    if result.returncode != 0 or not output:
+        speak("I couldn't find an active network connection.")
+        return
+
+    network_name, connectivity = output.split("|", 1)
+
+    if connectivity.lower() == "internet":
+        speak(f"You are connected to {network_name}. Internet access is available.")
+    else:
+        speak(f"You are connected to {network_name}, but internet access may be unavailable.")
+
+    def lock_computer():
+        speak("Locking your computer.")
+    subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"])
+
+def lock_computer():
+    speak("Locking your computer.")
+    subprocess.run(["rundll32.exe", "user32.dll,LockWorkStation"])
+
+def open_folder(folder_name):
+    if folder_name.lower() == "desktop":
+        folder_path = os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop")
+    else:
+        folder_path = os.path.join(os.path.expanduser("~"), folder_name)
+
+    if os.path.exists(folder_path):
+        speak(f"Opening {folder_name}.")
+        os.startfile(folder_path)
+    else:
+        speak(f"I couldn't find the {folder_name} folder.")
+
 def process_command(command):
 
     command = command.lower().strip()
+    command = command.replace("-", " ")
 
     # Remove JARVIS wake word
     command = command.replace("jarvis", "", 1).strip(" ,.!?")
@@ -402,6 +452,49 @@ def process_command(command):
             set_brightness(int(value))
         else:
             speak("Please tell me a brightness level from 0 to 100.")
+
+    elif command in [
+        "wifi status",
+        "check wifi",
+        "check wi fi",
+        "am i connected to wifi",
+        "network status",
+        "wi fi status",
+        "active wifi",
+        "active wi fi",
+        "am i connected to wi fi",
+        "are we connected to wi fi",
+        "internet status",
+        "mi connected to wi fi",
+    ]:
+        check_wifi_status()
+
+    elif command in [
+        "lock computer",
+        "lock my computer",
+        "lock pc",
+        "lock my pc",
+        "lock it",
+        "lock this computer",
+        "lock this pc",
+        "lock my screen",
+        "lock the screen",
+        "lock the pc",
+        "secure my computer",
+        "secure the pc"
+        "bye bye pc",
+        "bye bye chhammo",
+    ]:
+        lock_computer()
+
+    elif command in ["open downloads", "open my downloads"]:
+        open_folder("Downloads")
+
+    elif command in ["open documents", "open my documents"]:
+        open_folder("Documents")
+
+    elif command in ["open desktop", "open my desktop"]:
+        open_folder("Desktop")
 
 # UNKNOWN COMMAND
     else:
