@@ -229,6 +229,12 @@ def process_command(command):
         if not found:
             break
 
+            # Normalize common speech variations
+    command = command.replace("r u", "are you")
+    command = command.replace("how r you", "how are you")
+    command = command.replace("hu r u", "how are you")
+    command = command.replace("how r u", "how are you")
+
     # GREETINGS
 
 
@@ -391,8 +397,7 @@ def process_command(command):
 
     elif command.startswith("set brightness to "):
         value = command.replace("set brightness to ", "", 1)
-        value = value.replace(" percent", "").strip()
-
+        value = value.replace(" percent", "").replace("%", "").strip()
         if value.isdigit():
             set_brightness(int(value))
         else:
